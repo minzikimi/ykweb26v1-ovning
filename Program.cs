@@ -55,6 +55,38 @@ app.MapGet("/students", () => students);
 app.MapGet("/courses", () => courses);
 app.MapGet("/courseInstances", () => courseInstances);
 
+// Extrauppgift: Skapa en endpoint som returnerar en specific kurs baserat på kursens id.
+
+app.MapGet("/courses/{id}", (int id) =>
+{
+    var course = courses.FirstOrDefault(c => c.Id == id);
+    if (course == null)
+    {
+        return Results.NotFound("cant find");
+    }
+    return Results.Ok(course);
+});
+
+// Extrauppgift: Skapa en ny endpoint som returnerar alla kurser som en given student går
+// på.
+
+app.MapGet("/students/{studentID}/courses", (int studentID) =>
+{
+    var studentCourses = courseInstances
+    .Where(ci => ci.Students.Any(s => s.Id == studentID))
+    .Select(i => i.Course);
+    return studentCourses;
+});
+
+// Extrauppgift: Skapa en ny endpoint som returnerar alla kurser mellan två givna datum.
+app.MapGet("/courseInstances/between", (DateTime start, DateTime end) =>
+{
+    // 1. 변수 이름을 courseInstances로 일치시킴
+    var filtered = courseInstances
+        .Where(i => i.StartDate >= start && i.EndDate <= end);
+
+    return Results.Ok(filtered);
+});
 app.Run();
 
 

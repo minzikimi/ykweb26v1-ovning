@@ -31,3 +31,4 @@
 /Users/minzikimi/Csharp/modell/obj/Debug/net10.0/modell.pdb
 /Users/minzikimi/Csharp/modell/obj/Debug/net10.0/modell.genruntimeconfig.cache
 /Users/minzikimi/Csharp/modell/obj/Debug/net10.0/ref/modell.dll
+/Users/minzikimi/Csharp/modell/obj/Debug/net10.0/modell.sourcelink.json
