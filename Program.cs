@@ -1,4 +1,5 @@
 using modell.Models;
+using modell.Models.Requests;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,7 +52,7 @@ var courseInstances = new List<CourseInstance>
 
 
 app.MapGet("/hello", () => "Hello World!");
-app.MapGet("/students", () => students);
+
 app.MapGet("/courses", () => courses);
 app.MapGet("/courseInstances", () => courseInstances);
 
@@ -87,6 +88,55 @@ app.MapGet("/courseInstances/between", (DateTime start, DateTime end) =>
 
     return Results.Ok(filtered);
 });
+
+
+// --- Övning 2: Student CRUD ---
+
+app.MapGet("/students", () => Results.Ok(students));
+
+app.MapGet("/students/{id}", (int id) =>
+{
+    try
+    {
+        var s = students.FirstOrDefault(x => x.Id == id);
+        return s is null ? Results.NotFound() : Results.Ok(s);
+    }
+    catch { return Results.InternalServerError(); }
+});
+
+app.MapPost("/students", (CreateStudentRequest req) =>
+{
+    try
+    {
+        if (string.IsNullOrEmpty(req.Name)) return Results.BadRequest("Invalid Data");
+        var newStudent = new Student
+        {
+            Id = students.Count > 0 ? students.Max(s => s.Id) + 1 : 1,
+            Name = req.Name,
+            Email = req.Email
+        };
+        students.Add(newStudent);
+        return Results.Created($"/students/{newStudent.Id}", newStudent);
+    }
+    catch { return Results.InternalServerError(); }
+});
+
+app.MapPut("/students/{id}", (int id, CreateStudentRequest req) =>
+{
+    var s = students.FirstOrDefault(x => x.Id == id);
+    if (s is null) return Results.NotFound();
+    s.Name = req.Name; s.Email = req.Email;
+    return Results.Ok(s);
+});
+
+app.MapDelete("/students/{id}", (int id) =>
+{
+    var s = students.FirstOrDefault(x => x.Id == id);
+    if (s is null) return Results.NotFound();
+    students.Remove(s);
+    return Results.NoContent();
+});
+
 app.Run();
 
 
