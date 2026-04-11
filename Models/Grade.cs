@@ -1,11 +1,9 @@
 namespace modell.Models;
 
-public class Grade
+public class Grade(int id, string value, Student student, CourseInstance courseInstance)
 {
-    public int Id { get; set; }
-    public string Value { get; set; } = string.Empty;
-
-    public Student Student { get; set; } = new();
-
-    public CourseInstance CourseInstance { get; set; } = new();
+    public int Id { get; set; } = id;
+    public string Value { get; set; } = value;
+    public Student Student { get; set; } = student;
+    public CourseInstance CourseInstance { get; set; } = courseInstance;
 }

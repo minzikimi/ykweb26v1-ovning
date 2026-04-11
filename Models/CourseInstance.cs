@@ -1,10 +1,10 @@
-using modell.Models;
+namespace modell.Models;
 
-public class CourseInstance
+public class CourseInstance(int id, DateTime startDate, DateTime endDate, Course course, List<Student> students)
 {
-    public int Id { get; set; }
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
-    public Course Course { get; set; }
-    public List<Student> Students { get; set; } = new();
+    public int Id { get; set; } = id;
+    public DateTime StartDate { get; set; } = startDate;
+    public DateTime EndDate { get; set; } = endDate;
+    public Course Course { get; set; } = course;
+    public List<Student> Students { get; set; } = students;
 }
