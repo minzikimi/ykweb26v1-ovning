@@ -29,26 +29,25 @@ var courses = new List<Course> {
     new Course(102, "Web Design", "HTML/CSS basics")
 };
 
-// var courseInstances = new List<CourseInstance>
-// {
-//     new CourseInstance
-//     {
-//         Id = 1,
-//         Course = courses[0],
-//         Students = new List<Student> { students[0], students[1] },
-//         StartDate = new DateTime(2026, 4, 1),
-//         EndDate = new DateTime(2026, 6, 30)
-//     },
-//     new CourseInstance
-//     {
-//         Id=2,
-//         Course = courses[1],
-//         Students = new List<Student>{students[0]},
-//         StartDate = new DateTime(2026, 5, 1),
-//         EndDate = new DateTime(2026, 8, 1)
-//     }
-// };
+var courseInstances = new List<CourseInstance>
+{
+    // 순서: Id, StartDate, EndDate, Course, Students
+    new CourseInstance(
+        1,
+        new DateTime(2026, 4, 1),
+        new DateTime(2026, 6, 30),
+        courses[0],
+        new List<Student> { students[0], students[1] }
+    ),
 
+    new CourseInstance(
+        2,
+        new DateTime(2026, 5, 1),
+        new DateTime(2026, 8, 1),
+        courses[1],
+        new List<Student> { students[0] }
+    )
+};
 
 app.MapGet("/hello", () => "Hello World!");
 
@@ -163,6 +162,72 @@ app.MapDelete("/courses/{id}", (int id) =>
     return Results.NoContent();
 });
 
+
+
+// --- Övning 5: CourseInstance CRUD ---
+
+app.MapGet("/courseInstances", () => Results.Ok(courseInstances));
+app.MapGet("/courseInstances/{id}", (int id) =>
+{
+    var instance = courseInstances.FirstOrDefault(ci => ci.Id == id);
+    return instance is null ? Results.NotFound($"cant find {id}") : Results.Ok(instance);
+});
+
+app.MapPost("/courseInstances", (CreateCourseInstanceRequest req) =>
+{
+    try
+    {
+
+        ;
+        var foundCourse = courses.FirstOrDefault(c => c.Id == req.CourseId);
+        if (foundCourse is null)
+
+            return Results.BadRequest("cant find the course id")
+
+
+        ;
+        int nextId = courseInstances.Count > 0 ? courseInstances.Max(ci => ci.Id) + 1 : 1;
+        var newInstance = new CourseInstance(
+                    nextId,
+                    req.StartDate,
+                    req.EndDate,
+                    foundCourse,
+                    new List<Student>()
+                );
+        courseInstances.Add(newInstance);
+
+        return Results.Created($"/courseinstances/{nextId}", newInstance);
+    }
+
+    catch (Exception ex)
+    {
+        return Results.InternalServerError($"An error occurred: {ex.Message}");
+    }
+});
+app.MapPut("/courseInstances/{id}", (int id, CreateCourseInstanceRequest req) =>
+{
+    var instance = courseInstances.FirstOrDefault(ci => ci.Id == id);
+    if (instance is null) return Results.NotFound();
+
+    if (req.EndDate <= req.StartDate) return Results.BadRequest();
+
+    var foundCourse = courses.FirstOrDefault(c => c.Id == req.CourseId);
+    if (foundCourse is null) return Results.BadRequest();
+
+    instance.StartDate = req.StartDate;
+    instance.EndDate = req.EndDate;
+    instance.Course = foundCourse;
+
+    return Results.Ok(instance);
+});
+app.MapDelete("/courseInstances/{id}", (int id) =>
+{
+    var instance = courseInstances.FirstOrDefault(ci => ci.Id == id);
+    if (instance is null) return Results.NotFound();
+
+    courseInstances.Remove(instance);
+    return Results.NoContent();
+});
 
 app.Run();
 
