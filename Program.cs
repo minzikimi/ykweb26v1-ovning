@@ -49,6 +49,9 @@ var courseInstances = new List<CourseInstance>
     )
 };
 
+var validGrades = new List<string> { "A", "B", "C", "D", "E", "F" };
+var gradeRecords = new List<Grade>();
+
 app.MapGet("/hello", () => "Hello World!");
 
 
@@ -177,15 +180,11 @@ app.MapPost("/courseInstances", (CreateCourseInstanceRequest req) =>
 {
     try
     {
-
-        ;
         var foundCourse = courses.FirstOrDefault(c => c.Id == req.CourseId);
         if (foundCourse is null)
 
-            return Results.BadRequest("cant find the course id")
+            return Results.BadRequest("cant find the course id");
 
-
-        ;
         int nextId = courseInstances.Count > 0 ? courseInstances.Max(ci => ci.Id) + 1 : 1;
         var newInstance = new CourseInstance(
                     nextId,
@@ -206,27 +205,81 @@ app.MapPost("/courseInstances", (CreateCourseInstanceRequest req) =>
 });
 app.MapPut("/courseInstances/{id}", (int id, CreateCourseInstanceRequest req) =>
 {
-    var instance = courseInstances.FirstOrDefault(ci => ci.Id == id);
-    if (instance is null) return Results.NotFound();
+    try
+    {
+        var instance = courseInstances.FirstOrDefault(ci => ci.Id == id);
+        if (instance is null) return Results.NotFound();
 
-    if (req.EndDate <= req.StartDate) return Results.BadRequest();
+        if (req.EndDate <= req.StartDate) return Results.BadRequest();
 
-    var foundCourse = courses.FirstOrDefault(c => c.Id == req.CourseId);
-    if (foundCourse is null) return Results.BadRequest();
+        var foundCourse = courses.FirstOrDefault(c => c.Id == req.CourseId);
+        if (foundCourse is null) return Results.BadRequest();
 
-    instance.StartDate = req.StartDate;
-    instance.EndDate = req.EndDate;
-    instance.Course = foundCourse;
+        instance.StartDate = req.StartDate;
+        instance.EndDate = req.EndDate;
+        instance.Course = foundCourse;
 
-    return Results.Ok(instance);
+        return Results.Ok(instance);
+    }
+    catch (Exception ex)
+    {
+        return Results.InternalServerError(ex.Message);
+    }
+
 });
 app.MapDelete("/courseInstances/{id}", (int id) =>
 {
-    var instance = courseInstances.FirstOrDefault(ci => ci.Id == id);
-    if (instance is null) return Results.NotFound();
+    try
+    {
+        var instance = courseInstances.FirstOrDefault(ci => ci.Id == id);
+        if (instance is null) return Results.NotFound();
 
-    courseInstances.Remove(instance);
-    return Results.NoContent();
+        courseInstances.Remove(instance);
+        return Results.NoContent();
+    }
+    catch (Exception ex)
+    {
+        return Results.InternalServerError(ex.Message);
+    }
+});
+
+/* Övning 6 – (Frivillig utmaning) Hantera Grade
+• Skapa en endpoint POST /grades som låter läraren sätta ett betyg för en student i ett
+kurstillfälle.
+• Regler:
+o Om både student och kurstillfälle existerar → 201 Created.
+o Om student eller kurstillfälle saknas → 404 Not Found.
+o Om betyget är ogiltigt (t.ex. inte A–F) → 400 Bad Request. */
+
+app.MapPost("/grades", (CreateGradeRequest req) =>
+{
+    try
+    {
+        var foundStudent = students.FirstOrDefault(s => s.Id == req.StudentId);
+        var foundCourseInstance = courseInstances.FirstOrDefault(ci => ci.Id == req.CourseInstanceId);
+
+        if (foundStudent is null || foundCourseInstance is null)
+        {
+            return Results.NotFound("Student or CourseInstance not found.");
+        }
+
+        if (string.IsNullOrEmpty(req.Grade) || !validGrades.Contains(req.Grade.ToUpper()))
+        {
+            return Results.BadRequest("Invalid Grade.");
+        }
+
+        int nextId = gradeRecords.Count > 0 ? gradeRecords.Max(g => g.Id) + 1 : 1;
+
+        Grade created = new Grade(nextId, req.Grade.ToUpper(), foundStudent, foundCourseInstance);
+
+        gradeRecords.Add(created);
+
+        return Results.Created($"/grades/{nextId}", created);
+    }
+    catch (Exception ex)
+    {
+        return Results.InternalServerError(ex.Message);
+    }
 });
 
 app.Run();
