@@ -1,4 +1,4 @@
-namespace modell.Models.Requests;
+namespace modell.Requests;
 
 public struct CreateCourseInstanceRequest
 {

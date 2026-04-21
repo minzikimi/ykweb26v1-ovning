@@ -18,7 +18,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.MapControllers();
 
-//make mock data
+
 var students = new List<Student>
 {
     new Student(123, "minji", "minji@gmail.com"),
