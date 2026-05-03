@@ -16,7 +16,7 @@ public class StudentController : ControllerBase
         new Student(456, "somin", "somin@gmail.com")
     };
 
-    [HttpGet]
+
     [HttpGet]
     public ActionResult<List<Student>> GetStudents()
     {
