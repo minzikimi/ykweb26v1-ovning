@@ -21,8 +21,7 @@ public class StudentController : ControllerBase
     [HttpGet]
     public ActionResult<List<Student>> GetStudents()
     {
-        var students = _studentService.GetStudents();
-        return Ok(students);
+        return Ok(_studentService.GetStudents());
     }
 
     // GET /api/student/{id}
@@ -74,4 +73,4 @@ public class StudentController : ControllerBase
         var success = _studentService.Delete(id);
         return success ? NoContent() : NotFound($"Student {id} not found.");
     }
-};
+}
