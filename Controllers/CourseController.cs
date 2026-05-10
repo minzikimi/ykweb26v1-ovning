@@ -1,80 +1,68 @@
 using Microsoft.AspNetCore.Mvc;
-
 using modell.Models;
 using modell.Requests;
+using modell.Services;
 
 namespace modell.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class Courseontroller : ControllerBase
+public class CourseController : ControllerBase
 {
+    private readonly CourseService _courseService;
 
-    private static List<Course> courses = new()
+    public CourseController(CourseService courseService)
     {
-        new Course(101, "C# Basic", "Learn the fundamentals of C#"),
-        new Course(102, "Web API", "Build professional APIs with ASP.NET Core")
-    };
-
+        _courseService = courseService;
+    }
 
     [HttpGet]
     public ActionResult<List<Course>> GetCourses()
     {
-        return Ok(courses);
+        var courses = _courseService.GetCourses();
+        return Ok(_courseService.GetCourses());
     }
 
     [HttpGet("{id}")]
     public ActionResult<Course> GetCourse(int id)
     {
-        var course = courses.FirstOrDefault(c => c.Id == id);
+        var course = _courseService.GetCourse(id);
         return course is null ? NotFound() : Ok(course);
     }
+
     [HttpPost]
     public ActionResult<Course> Create(CreateCourseRequest req)
     {
-        try
-        {
-            int nextId = courses.Count > 0 ? courses.Max(c => c.Id) + 1 : 101;
+        var newCourse = new Course(0, req.Title, req.Description);
+        var created = _courseService.Add(newCourse);
 
-            var created = new Course(nextId, req.Title, req.Description);
-            courses.Add(created);
-
-            return CreatedAtAction(nameof(GetCourse), new { id = nextId }, created);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ex.Message);
-        }
+        return CreatedAtAction(nameof(GetCourse), new { id = created.Id }, created);
     }
 
     [HttpPut("{id}")]
     public ActionResult<Course> Update(int id, CreateCourseRequest req)
     {
-        var modifyingCourse = courses.FirstOrDefault(c => c.Id == id);
+        var updatedData = new Course(0, req.Title, req.Description);
+        var result = _courseService.Update(id, updatedData);
 
-        if (modifyingCourse is null)
+        if (result is null)
         {
             return NotFound($"Course with ID {id} not found.");
         }
 
-        modifyingCourse.Title = req.Title;
-        modifyingCourse.Description = req.Description;
-
-        return Ok(modifyingCourse);
+        return Ok(result);
     }
-
 
     [HttpDelete("{id}")]
     public IActionResult Delete(int id)
     {
-        var targetCourse = courses.FirstOrDefault(c => c.Id == id);
+        var success = _courseService.Delete(id);
 
-        if (targetCourse is null)
+        if (!success)
         {
             return NotFound($"Course {id} not found.");
         }
 
-        courses.Remove(targetCourse);
         return NoContent();
     }
 }
